@@ -1,0 +1,500 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Radar Master</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap">
+<style>
+/* Layout: one calm column, read like an evening letter. Huge date as the opener, one coloured block for
+   the single next thing, then plain lists separated by air instead of boxes. Light only, by choice. */
+:root{
+  color-scheme:light;
+  --bg:#f8f9fb; --ink:#15161c; --mute:#6c707c; --line:#e4e6ec; --tint:#eef0ff; --card:#ffffff;
+  --accent:#3535e8; --on-accent:#ffffff; --late:#d4331f; --late-tint:#fdecea;
+  --f:"Archivo",ui-sans-serif,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:17px/1.6 var(--f);font-variation-settings:"wdth" 100}
+.page{max-width:720px;margin:0 auto;padding-inline:24px;padding-block:48px 120px;display:grid;gap:56px}
+@media (max-width:520px){.page{padding-inline:18px;gap:72px}}
+h1,h2,h3,p{margin:0}
+h2{font-size:30px;font-weight:800;font-stretch:125%;font-variation-settings:"wdth" 125;letter-spacing:-.01em;line-height:1.1}
+a{color:var(--accent);text-underline-offset:3px;overflow-wrap:anywhere}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+.bar{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--mute);font-size:15px}
+.bar b{color:var(--ink);font-weight:700}
+.sample{background:var(--tint);color:var(--accent);border-radius:10px;padding:8px 12px;font-size:14px;justify-self:start;margin-bottom:-16px}
+
+/* opener */
+.opener{display:grid;gap:28px}
+.date{display:grid;line-height:.9}
+.wd{font-size:clamp(52px,13vw,112px);font-weight:900;font-variation-settings:"wdth" 125;letter-spacing:-.035em}
+.dm{font-size:clamp(28px,6vw,44px);font-weight:300;font-variation-settings:"wdth" 110;color:var(--mute);margin-top:10px}
+.summary{font-size:clamp(20px,3vw,24px);line-height:1.45;max-width:30em;text-wrap:pretty}
+.points{display:grid;gap:10px;padding:0;margin:0;list-style:none;max-width:34em}
+.points li{padding-left:22px;position:relative;color:var(--ink)}
+.points li::before{content:"";position:absolute;left:0;top:.72em;width:10px;height:2px;background:var(--accent)}
+
+/* next */
+.next{background:var(--accent);color:var(--on-accent);border-radius:20px;padding:28px 32px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+.next .big{font-size:clamp(44px,7vw,64px);font-weight:900;font-variation-settings:"wdth" 125;line-height:.85;letter-spacing:-.03em}
+.next .unit{display:block;font-size:20px;font-weight:500;font-variation-settings:"wdth" 100;letter-spacing:0;margin-top:10px;opacity:.85}
+.next .what{font-size:24px;font-weight:700;line-height:1.3}
+.next .lbl{font-size:15px;font-weight:600;opacity:.8;margin-bottom:8px}
+.next .from{opacity:.8;font-size:16px;margin-top:6px}
+.next a{color:var(--on-accent)}
+.next.calm{background:var(--tint);color:var(--ink)}
+.next.calm .what{font-weight:600}
+@media (max-width:520px){.next{grid-template-columns:1fr;padding:26px;gap:16px}}
+
+/* sections */
+.sec{display:grid;gap:20px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.n{color:var(--mute);font-size:16px}
+.rows{display:grid}
+.row{display:grid;grid-template-columns:28px 1fr auto;gap:14px;padding:20px 0;border-top:1px solid var(--line);align-items:start}
+.row:first-child{border-top:0;padding-top:0}
+.row input{width:22px;height:22px;margin:3px 0 0;accent-color:var(--accent);cursor:pointer}
+.row .t{font-weight:650;font-size:18px;line-height:1.35}
+.row .d{color:var(--mute);font-size:16px;margin-top:4px}
+.row .s{color:var(--mute);font-size:15px;margin-top:6px}
+.row.done{opacity:.45}.row.done .t{text-decoration:line-through}
+.due{font-size:15px;font-weight:700;white-space:nowrap;color:var(--mute);padding-top:2px}
+.due.soon{color:var(--accent)}
+.due.late{color:var(--late)}
+.ask{color:var(--accent);font-size:14px;font-weight:700;margin-bottom:4px}
+.due-in{display:none;font-weight:700}
+@media (max-width:520px){.row{grid-template-columns:28px 1fr}.row .due{display:none}.due-in{display:inline}.due-in.soon{color:var(--accent)}.due-in.late{color:var(--late)}}
+
+/* week */
+.week{display:grid;gap:36px}
+.wday{display:grid;grid-template-columns:120px 1fr;gap:20px;border-top:1px solid var(--line);padding-top:24px}
+.wday:first-child{border-top:0;padding-top:0}
+.slot .from{color:var(--mute);font-size:14px;margin-top:2px}
+.wday h3{font-size:17px;font-weight:800;font-variation-settings:"wdth" 115;line-height:1.3}
+.wday h3 span{display:block;font-weight:400;color:var(--mute);font-variation-settings:"wdth" 100;font-size:15px}
+.slots{display:grid;gap:18px}
+.slot .h{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent)}
+.slot .t{font-weight:600}
+.slot .d{color:var(--mute);font-size:16px}
+@media (max-width:520px){.wday{grid-template-columns:1fr;gap:10px}}
+
+/* calendar: month grid, courses in accent, deadlines in red; phones get dots and read the day list below */
+.calnav{display:flex;align-items:center;gap:10px;font-weight:700;font-variant-numeric:tabular-nums}
+.calnav span{min-width:9.5em;text-align:center}
+.calnav button{width:38px;height:38px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;font-size:20px;line-height:1;display:grid;place-items:center}
+.calnav button:hover{border-color:var(--accent);color:var(--accent)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cw{font-size:13px;color:var(--mute);text-align:center;font-weight:600;padding-bottom:4px}
+.cd{display:flex;flex-direction:column;gap:3px;min-height:92px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--card);text-align:left;cursor:pointer;min-width:0}
+.cd:hover{border-color:var(--accent)}
+.cd.out{opacity:.4}
+.cd.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.num{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;width:26px;height:26px;display:grid;place-items:center;border-radius:999px}
+.cd.today .num{background:var(--accent);color:var(--on-accent)}
+.chip{display:block;font-size:12px;line-height:1.35;padding:2px 5px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.chip.m{background:var(--tint);color:var(--accent)}
+.chip.d{background:var(--late-tint);color:var(--late)}
+.chip.done{text-decoration:line-through;opacity:.55}
+.dots{display:none}
+.calday{display:grid;gap:18px;border-top:1px solid var(--line);padding-top:24px}
+.calday h3{font-size:20px;font-weight:800;font-variation-settings:"wdth" 115}
+.slot .h.dl{color:var(--late)}
+@media (max-width:520px){
+  .cd{min-height:54px;padding:4px 2px;align-items:center}
+  .cd .chip{display:none}
+  .dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+  .dots i{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .dots i.d{background:var(--late)}
+  .calnav span{min-width:7.5em}
+}
+
+/* jobs + links */
+.list2{display:grid}
+.list2>.entry{border-top:1px solid var(--line);padding:20px 0}.list2>.entry:first-child{border-top:0;padding-top:0}
+.entry .t a{color:var(--ink);text-decoration:none}.entry .t a:hover{color:var(--accent);text-decoration:underline}
+.entry .dom{color:var(--mute);font-size:15px}
+.entry{display:grid;gap:4px;min-width:0}
+.entry .t{font-weight:650;font-size:18px;line-height:1.35}
+.entry .d{color:var(--mute);font-size:16px}
+.entry .s{color:var(--mute);font-size:14px}
+.find{display:grid;gap:8px;max-width:360px}
+.find label{font-size:15px;color:var(--mute)}
+.find input{padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}
+.find input:focus{border-color:var(--accent);outline:none}
+
+.empty{color:var(--mute);font-size:17px;max-width:32em}
+.foot{color:var(--mute);font-size:15px}
+.inline-toggle{display:inline-flex;align-items:center;gap:8px;color:var(--mute);font-size:15px;cursor:pointer}
+.inline-toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.foot label{display:inline-flex;align-items:center;gap:10px;cursor:pointer}
+.foot input{width:18px;height:18px;accent-color:var(--accent)}
+.status{color:var(--late)}
+.lock{max-width:360px;margin:20vh auto;padding:0 24px;display:grid;gap:14px}.lock input{padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}.lock button{padding:12px;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:700;cursor:pointer}
+
+@media (prefers-reduced-motion:no-preference){
+    @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+}
+
+/* navigation: top bar on desktop, thumb bar on phones */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:720px;margin:0 auto;padding-inline:24px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-weight:800;font-variation-settings:"wdth" 120;font-size:17px}
+.nav{display:flex;gap:2px}
+.nav a{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;color:var(--mute);text-decoration:none;font-weight:600;font-size:15px}
+.nav a:hover{color:var(--ink)}
+.nav a[aria-current="page"]{background:none;color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent);border-radius:0}
+.nav i{font-style:normal;font-size:14px;font-weight:600;color:var(--mute);font-variant-numeric:tabular-nums}
+.nav i:empty{display:none}
+@media (max-width:720px){
+  .top{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg)}
+  .top-in{justify-content:center;height:56px}
+  .nav{position:fixed;left:0;right:0;bottom:0;justify-content:space-around;gap:0;background:var(--bg);border-top:1px solid var(--line);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+  .nav a{flex-direction:row;gap:3px;font-size:13px;padding:12px 4px}
+  .nav i{font-size:12px}
+  .top-in>.brand{display:none}.top-in{height:0;padding:0}.top{border:0}
+  .page{padding-bottom:140px}
+}
+.view{display:grid;gap:40px}
+.vt{font-size:clamp(32px,5vw,44px);font-weight:900;font-variation-settings:"wdth" 125;letter-spacing:-.02em;line-height:1}
+.vt .n{font-size:20px;font-weight:500;font-variation-settings:"wdth" 100;letter-spacing:0;margin-left:10px}
+.h-sm{font-size:24px}
+.lede{color:var(--mute);font-size:18px;max-width:34em;margin-top:-12px}
+.updated{color:var(--mute);font-size:15px}
+@media (prefers-reduced-motion:no-preference){.view.enter{animation:rise .35s cubic-bezier(.2,.7,.2,1) both}}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <b class="brand">Radar Master</b>
+    <nav class="nav" aria-label="Secțiuni">
+      <a href="#azi" data-v="azi"><span>Azi</span></a>
+      <a href="#de-facut" data-v="de-facut"><span>De făcut</span><i id="c-todo"></i></a>
+      <a href="#agenda" data-v="agenda"><span>Agenda</span><i id="c-week"></i></a>
+      <a href="#calendar" data-v="calendar"><span>Calendar</span></a>
+      <a href="#joburi" data-v="joburi"><span>Joburi</span><i id="c-jobs"></i></a>
+      <a href="#linkuri" data-v="linkuri"><span>Link-uri</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="view" id="v-azi">
+    <p class="sample" id="sample" hidden>Date de exemplu. Dispar după prima citire a grupurilor.</p>
+    <section class="opener" aria-label="Rezumatul serii">
+      <h1 class="date"><span class="wd" id="wd"></span><span class="dm" id="dm"></span></h1>
+      <p class="summary" id="summary"></p>
+      <ul class="points" id="points"></ul>
+    </section>
+    <section id="next" class="next" aria-label="Urmează"></section>
+    <section class="sec" aria-labelledby="h-info" id="infoSec">
+      <div class="sec-head"><h2 class="h-sm" id="h-info">Bine de știut</h2></div>
+      <div class="rows" id="info"></div>
+    </section>
+    <p class="updated" id="updated">Se încarcă</p>
+  </div>
+
+  <div class="view" id="v-de-facut" hidden>
+    <section class="sec" aria-labelledby="h-todo">
+      <div class="sec-head"><h2 class="vt" id="h-todo">De făcut<span class="n" id="n-todo"></span></h2><label class="inline-toggle" for="showDone"><input type="checkbox" id="showDone">Arată și ce am bifat</label></div>
+      <div class="rows" id="todo"></div>
+    </section>
+  </div>
+
+  <div class="view" id="v-agenda" hidden>
+    <section class="sec" aria-labelledby="h-week">
+      <div class="sec-head"><h2 class="vt" id="h-week">Agenda</h2></div>
+      <div class="week" id="week"></div>
+    </section>
+  </div>
+
+  <div class="view" id="v-calendar" hidden>
+    <section class="sec" aria-labelledby="h-cal">
+      <div class="sec-head">
+        <h2 class="vt" id="h-cal">Calendar</h2>
+        <div class="calnav"><button type="button" id="calPrev" aria-label="Luna anterioară">‹</button><span id="calMonth" aria-live="polite"></span><button type="button" id="calNext" aria-label="Luna următoare">›</button></div>
+      </div>
+      <div class="cal" id="cal"></div>
+      <div class="calday" id="calDay"></div>
+    </section>
+  </div>
+
+  <div class="view" id="v-joburi" hidden>
+    <section class="sec" aria-labelledby="h-jobs">
+      <div class="sec-head"><h2 class="vt" id="h-jobs">Joburi<span class="n" id="n-jobs"></span></h2></div>
+      <p class="lede">Joburi, internship-uri, concursuri și burse menționate în grupuri.</p>
+      <div class="list2" id="jobs"></div>
+    </section>
+  </div>
+
+  <div class="view" id="v-linkuri" hidden>
+    <section class="sec" aria-labelledby="h-links">
+      <div class="sec-head"><h2 class="vt" id="h-links">Link-uri</h2></div>
+      <div class="find" id="find" hidden><input type="search" id="q" autocomplete="off" placeholder="Caută în link-uri" aria-label="Caută în link-uri"></div>
+      <div class="list2" id="links"></div>
+    </section>
+  </div>
+
+  <div class="foot" id="foot">
+    <span class="status" id="status" role="status"></span>
+  </div>
+</main>
+
+<script src="data.js" onerror="this.remove()"></script>
+<script src="data.enc.js" onerror="this.remove()"></script>
+<script>
+const $=id=>document.getElementById(id);
+let items=[], brief=null, db=null, demo=false;
+
+const hasTime=s=>typeof s==="string"&&s.length>10;
+const parse=s=>s?new Date(hasTime(s)?s:s+"T23:59"):null;
+const sod=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
+const left=due=>{const d=parse(due);return d&&!isNaN(d)?Math.round((sod(d)-sod(new Date()))/864e5):null};
+const F=o=>new Intl.DateTimeFormat("ro-RO",o);
+const fWd=F({weekday:"long"}), fDm=F({day:"numeric",month:"long"}), fTime=F({hour:"2-digit",minute:"2-digit"}), fShort=F({day:"numeric",month:"short"}), fStamp=F({day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}), fMonth=F({month:"long",year:"numeric"});
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+function link(url,label){const a=el("a",null,label||url.replace(/^https?:\/\/(www\.)?/,"").replace(/\/$/,"").slice(0,56));a.href=url;a.target="_blank";a.rel="noopener";return a}
+function srcLine(i,cls="s"){if(!i.source&&!i.url)return null;const s=el("div",cls,i.source||"");if(i.url){if(i.source)s.append(", ");s.appendChild(link(i.url))}return s}
+
+/* example data, shown only while the store is empty */
+function sample(){
+  const d=(n,h)=>{const x=new Date();x.setDate(x.getDate()+n);if(h){x.setHours(h,0,0,0);return x.toISOString()}return x.toISOString().slice(0,10)};
+  return {
+    brief:{summary:"Seară liniștită. Un singur termen apropiat și un curs mutat.",highlights:["Proiectul la Securitatea Rețelelor se predă până joi","Cursul de Criptografie de marți se ține online","Cineva caută doi colegi pentru un internship de SOC"]},
+    items:[
+      {id:"e1",kind:"deadline",title:"Proiect Securitatea Rețelelor: raport + captură Wireshark",due:d(2),source:"WhatsApp, Master Cyber an 1"},
+      {id:"e2",kind:"action",title:"Completează formularul pentru alegerea temei de disertație",due:d(5),source:"Teams, Secretariat",url:"https://forms.office.com"},
+      {id:"e3",kind:"deadline",title:"Tema 2 la Criptografie aplicată",due:d(9),source:"Discord, #anunturi"},
+      {id:"e4",kind:"meeting",title:"Criptografie aplicată (online)",due:d(1,16),note:"Link nou pe Teams",source:"Teams"},
+      {id:"e5",kind:"meeting",title:"Laborator Pentesting",due:d(3,18),note:"Sala 204",source:"WhatsApp"},
+      {id:"e6",kind:"job",title:"Internship SOC Analyst, 6 luni",note:"Se caută 2 studenți, program flexibil",source:"WhatsApp, postat de un coleg",url:"https://www.linkedin.com/jobs"},
+      {id:"e7",kind:"job",title:"CTF cu premii, echipe de 3",note:"Înscrieri până pe 25",source:"Discord, #oportunitati"},
+      {id:"e8",kind:"link",title:"Notițe complete Criptografie",note:"Drive cu cursurile 1 la 5",source:"Discord",url:"https://drive.google.com"},
+      {id:"e9",kind:"link",title:"TryHackMe, path SOC Level 1",source:"WhatsApp",url:"https://tryhackme.com"},
+      {id:"e10",kind:"info",title:"S-a schimbat sala pentru examenul parțial",note:"Detaliile vin săptămâna viitoare",source:"Teams"}
+    ]
+  };
+}
+
+function opener(){
+  const now=new Date();
+  $("wd").textContent=cap(fWd.format(now)); $("dm").textContent=fDm.format(now);
+  $("summary").textContent=brief?.summary||"Încă nu am citit grupurile. După primul /master, aici apare pe scurt ce s-a întâmplat azi.";
+  const P=$("points"); P.textContent="";
+  for(const h of (brief?.highlights||[])) P.appendChild(el("li",null,h));
+  P.hidden=!(brief?.highlights||[]).length;
+}
+
+function next(){
+  const N=$("next"); N.textContent=""; N.className="next";
+  const open=items.filter(i=>!i.done&&i.due&&["deadline","action","meeting"].includes(i.kind)&&left(i.due)>=0)
+    .sort((a,b)=>parse(a.due)-parse(b.due));
+  const i=open[0];
+  if(!i){N.classList.add("calm");N.appendChild(el("div","what","Nimic cu termen în zilele următoare."));N.style.gridTemplateColumns="1fr";return}
+  N.style.gridTemplateColumns="";
+  const n=left(i.due);
+  const big=el("div","big",n===0?"Azi":n===1?"Mâine":String(n));
+  if(n>1) big.appendChild(el("span","unit","zile"));
+  else if(hasTime(i.due)) big.appendChild(el("span","unit","la "+fTime.format(parse(i.due))));
+  const w=el("div"); w.appendChild(el("div","lbl","Urmează")); w.appendChild(el("div","what",i.title));
+  const s=srcLine(i,"from"); if(s) w.appendChild(s);
+  N.append(big,w);
+}
+
+function dueLabel(i){
+  const n=left(i.due); if(n===null) return null;
+  if(n<0) return ["a trecut","late"]; if(n===0) return ["azi","late"]; if(n===1) return ["mâine","soon"];
+  if(n<=7) return [`în ${n} zile`,"soon"]; return [fShort.format(parse(i.due)),""];
+}
+
+function todo(){
+  const show=$("showDone").checked;
+  const all=items.filter(i=>i.kind==="deadline"||i.kind==="action");
+  const rows=all.filter(i=>show||!i.done).sort((a,b)=>(a.done-b.done)||((parse(a.due)||Infinity)-(parse(b.due)||Infinity)));
+  const open=all.filter(i=>!i.done).length; $("n-todo").textContent=open?`${open} rămase`:"";
+  const B=$("todo"); B.textContent="";
+  if(!rows.length){B.appendChild(el("p","empty","Nimic de predat și nimic care să aștepte după tine."));return}
+  for(const i of rows){
+    const r=el("article","row"+(i.done?" done":""));
+    const c=document.createElement("input"); c.type="checkbox"; c.id="c-"+i.id; c.checked=!!i.done;
+    c.setAttribute("aria-label","Bifează: "+i.title); c.onchange=()=>toggle(i,c.checked);
+    const b=el("div");
+    if(i.kind==="action") b.appendChild(el("div","ask",i.source?"Cerut în "+i.source.split(",").pop().trim():"Ți se cere"));
+    b.appendChild(el("div","t",i.title)); if(i.note) b.appendChild(el("div","d",i.note));
+    const dl0=!i.done&&dueLabel(i);
+    let s=srcLine(i);
+    if(dl0){if(!s)s=el("div","s");s.prepend(el("span","due-in "+dl0[1],dl0[0]+(s.childNodes.length?", ":"")))}
+    if(s) b.appendChild(s);
+    r.append(c,b);
+    const dl=!i.done&&dueLabel(i); if(dl) r.appendChild(el("span","due "+dl[1],dl[0]));
+    B.appendChild(r);
+  }
+}
+
+function week(){
+  const rows=items.filter(i=>i.kind==="meeting"&&i.due&&left(i.due)>=0).sort((a,b)=>parse(a.due)-parse(b.due));
+  const W=$("week"); W.textContent="";
+  if(!rows.length){W.appendChild(el("p","empty","Niciun curs mutat și nicio întâlnire anunțată."));return}
+  const groups=new Map();
+  for(const i of rows){const k=sod(parse(i.due)).getTime();if(!groups.has(k))groups.set(k,[]);groups.get(k).push(i)}
+  for(const [k,list] of groups){
+    const d=new Date(k), n=left(list[0].due);
+    const g=el("div","wday"), h=el("h3",null,n===0?"Azi":n===1?"Mâine":cap(fWd.format(d)));
+    h.appendChild(el("span",null,fDm.format(d))); g.appendChild(h);
+    const S=el("div","slots");
+    for(const i of list){
+      const s=el("div","slot");
+      if(hasTime(i.due)) s.appendChild(el("div","h",fTime.format(parse(i.due))));
+      s.appendChild(el("div","t",i.title)); if(i.note) s.appendChild(el("div","d",i.note));
+      if(i.source||i.url){const x=el("div","from",i.source?"din "+i.source:"");if(i.url){if(i.source)x.append(", ");x.appendChild(link(i.url))}s.appendChild(x)}
+      S.appendChild(s);
+    }
+    g.appendChild(S); W.appendChild(g);
+  }
+}
+
+/* calendar: Monday-first month grid of courses (meeting) and deadlines (deadline/action) */
+let calM=(d=>new Date(d.getFullYear(),d.getMonth(),1))(new Date()), calSel=sod(new Date()).getTime();
+function cal(){
+  const C=$("cal"); C.textContent="";
+  $("calMonth").textContent=cap(fMonth.format(calM));
+  for(const w of ["L","Ma","Mi","J","V","S","D"]) C.appendChild(el("div","cw",w));
+  const by=new Map();
+  for(const i of items){
+    if(!i.due||!["meeting","deadline","action"].includes(i.kind)) continue;
+    const k=sod(parse(i.due)).getTime(); if(!by.has(k)) by.set(k,[]); by.get(k).push(i);
+  }
+  for(const l of by.values()) l.sort((a,b)=>parse(a.due)-parse(b.due));
+  const start=new Date(calM); start.setDate(1-((calM.getDay()+6)%7));
+  const today=sod(new Date()).getTime();
+  for(let n=0;n<42;n++){
+    const d=new Date(start); d.setDate(start.getDate()+n);
+    if(n%7===0&&n>0&&d.getMonth()!==calM.getMonth()) break;
+    const k=d.getTime(), L=by.get(k)||[];
+    const b=el("button","cd"+(d.getMonth()!==calM.getMonth()?" out":"")+(k===today?" today":"")+(k===calSel?" sel":""));
+    b.type="button";
+    b.setAttribute("aria-label",fDm.format(d)+(L.length?`, ${L.length} ${L.length===1?"eveniment":"evenimente"}`:""));
+    b.appendChild(el("span","num",d.getDate()));
+    const dots=el("span","dots");
+    for(const i of L){
+      const kind=i.kind==="meeting"?"m":"d";
+      b.appendChild(el("span","chip "+kind+(i.done?" done":""),(hasTime(i.due)?fTime.format(parse(i.due))+" ":"")+i.title.split(/\s[·(:]/)[0].trim()));
+      dots.appendChild(el("i",kind));
+    }
+    if(L.length) b.appendChild(dots);
+    b.onclick=()=>{calSel=k;cal()};
+    C.appendChild(b);
+  }
+  const D=$("calDay"); D.textContent=""; const sel=new Date(calSel), L=by.get(calSel)||[];
+  D.appendChild(el("h3",null,cap(fWd.format(sel))+", "+fDm.format(sel)));
+  if(!L.length){D.appendChild(el("p","empty","Nimic în ziua asta."));return}
+  for(const i of L){
+    const s=el("div","slot");
+    s.appendChild(el("div","h"+(i.kind==="meeting"?"":" dl"),hasTime(i.due)?fTime.format(parse(i.due)):(i.kind==="meeting"?"Toată ziua":"Termen")));
+    s.appendChild(el("div","t",i.title)); if(i.note) s.appendChild(el("div","d",i.note));
+    const x=srcLine(i,"from"); if(x) s.appendChild(x);
+    D.appendChild(s);
+  }
+}
+$("calPrev").onclick=()=>{calM.setMonth(calM.getMonth()-1);cal()};
+$("calNext").onclick=()=>{calM.setMonth(calM.getMonth()+1);cal()};
+
+function entries(id,kind,emptyText,q=""){
+  const show=$("showDone").checked;
+  let rows=items.filter(i=>i.kind===kind&&(show||!i.done));
+  if(q) rows=rows.filter(i=>[i.title,i.note,i.source,i.url].join(" ").toLowerCase().includes(q));
+  const B=$(id); B.textContent="";
+  if(!rows.length){B.appendChild(el("p","empty",q?"Niciun link nu se potrivește.":emptyText));return rows}
+  for(const i of rows){
+    const e=el("article","entry");
+    e.appendChild(i.url&&kind==="link"?(()=>{const t=el("div","t");t.appendChild(link(i.url,i.title));return t})():el("div","t",i.title));
+    if(kind==="link"&&i.url) e.appendChild(el("div","dom",i.url.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]));
+    if(i.note) e.appendChild(el("div","d",i.note));
+    if(kind==="job"&&i.url){const l=el("div","d");l.appendChild(link(i.url,"Vezi anunțul"));e.appendChild(l)}
+    const meta=[i.source,i.added?fShort.format(new Date(i.added)):null].filter(Boolean).join(", ");
+    if(meta) e.appendChild(el("div","s",meta));
+    B.appendChild(e);
+  }
+  return rows;
+}
+
+function info(){
+  const rows=items.filter(i=>i.kind==="info"&&($("showDone").checked||!i.done));
+  $("infoSec").hidden=!rows.length;
+  const B=$("info"); B.textContent="";
+  for(const i of rows){const r=el("article","row");r.style.gridTemplateColumns="1fr";const b=el("div");b.appendChild(el("div","t",i.title));if(i.note)b.appendChild(el("div","d",i.note));const s=srcLine(i);if(s)b.appendChild(s);r.appendChild(b);B.appendChild(r)}
+}
+
+
+const VIEWS=["azi","de-facut","agenda","calendar","joburi","linkuri"];
+function show(v,anim){
+  if(!VIEWS.includes(v)) v="azi";
+  for(const x of VIEWS){const e=$("v-"+x);e.hidden=x!==v;e.classList.toggle("enter",x===v&&anim)}
+  for(const a of document.querySelectorAll(".nav a")) a.dataset.v===v?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current");
+  if(anim) window.scrollTo(0,0);
+}
+addEventListener("hashchange",()=>show(location.hash.slice(1),true));
+show(location.hash.slice(1),false);
+function counts(){
+  const n=k=>items.filter(i=>k.includes(i.kind)&&!i.done&&(i.kind!=="meeting"||left(i.due)>=0)).length;
+  $("c-todo").textContent=n(["deadline","action"])||"";
+  $("c-week").textContent=n(["meeting"])||"";
+  $("c-jobs").textContent=n(["job"])||"";
+}
+
+function render(){counts();
+  opener(); next(); todo(); week(); cal();
+  const j=entries("jobs","job","Nicio ofertă încă. Când cineva postează un job, internship sau concurs, apare aici.");
+  $("n-jobs").textContent=j.length?String(j.length):"";
+  $("find").hidden=items.filter(i=>i.kind==="link").length<=6;
+  entries("links","link","Niciun link salvat încă.",$("q").value.trim().toLowerCase());
+  info();
+}
+
+function toggle(i,done){
+  i.done=done;
+  if(!demo){const m=JSON.parse(localStorage.getItem("radar-done")||"{}");m[i.id]=done;localStorage.setItem("radar-done",JSON.stringify(m))}
+  render();
+}
+
+function useSample(){const s=sample();demo=true;items=s.items;brief=s.brief;$("sample").hidden=false;render()}
+function useReal(){demo=false;$("sample").hidden=true}
+
+$("q").addEventListener("input",render);
+$("showDone").addEventListener("change",render);
+render();
+
+/* data: data.js (local, plain) or data.enc.js (online, AES-GCM + PBKDF2, unlocked with a password) */
+function boot(){
+  const R=window.RADAR;
+  if(!R||!(R.items||[]).length){$("updated").textContent=R?.brief?.when?"Actualizat "+fStamp.format(new Date(R.brief.when)):"Niciun rezumat încă";useSample();if(R?.brief){brief=R.brief;render()}return}
+  useReal();
+  const m=JSON.parse(localStorage.getItem("radar-done")||"{}");
+  items=R.items.map(i=>({...i,done:i.id in m?m[i.id]:!!i.done}));
+  brief=R.brief||null;
+  $("updated").textContent=brief?.when?"Actualizat "+fStamp.format(new Date(brief.when)):"";
+  render();
+}
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function unlock(pw){
+  const E=window.RADAR_ENC, k0=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
+  const k=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(E.salt),iterations:E.iter,hash:"SHA-256"},k0,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(E.iv)},k,b64(E.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+(async()=>{
+  if(window.RADAR||!window.RADAR_ENC){boot();return}
+  document.querySelector(".page").hidden=true; document.querySelector(".top").hidden=true;
+  const L=el("form","lock"); L.innerHTML='<h1 class="wd" style="font-size:44px">Radar Master</h1><input type="password" id="pw" placeholder="Parola" autocomplete="current-password" aria-label="Parola"><button>Deschide</button><p class="status" id="pwerr"></p>';
+  document.body.appendChild(L);
+  const go=async pw=>{try{window.RADAR=await unlock(pw);localStorage.setItem("radar-pw",pw);L.remove();document.querySelector(".page").hidden=false;document.querySelector(".top").hidden=false;boot();return true}catch(e){return false}};
+  const saved=localStorage.getItem("radar-pw"); if(saved&&await go(saved)) return;
+  L.onsubmit=async e=>{e.preventDefault();if(!await go($("pw").value)){$("pwerr").textContent="Parolă greșită."}};
+  $("pw").focus();
+})();
+</script>
+
+</body></html>
