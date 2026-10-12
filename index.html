@@ -243,7 +243,7 @@ button,input{font:inherit;color:inherit}
 </main>
 
 <script src="data.js" onerror="this.remove()"></script>
-<script src="data.enc.js" onerror="this.remove()"></script>
+<script src="data.enc.js?v=1791827386887" onerror="this.remove()"></script>
 <script>
 const $=id=>document.getElementById(id);
 let items=[], brief=null, db=null, demo=false;
@@ -251,6 +251,7 @@ let items=[], brief=null, db=null, demo=false;
 const hasTime=s=>typeof s==="string"&&s.length>10;
 const parse=s=>s?new Date(hasTime(s)?s:s+"T23:59"):null;
 const sod=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
+const upcoming=i=>{const d=parse(i.due);return !!d&&!isNaN(d)&&(hasTime(i.due)?d>=new Date():left(i.due)>=0)};
 const left=due=>{const d=parse(due);return d&&!isNaN(d)?Math.round((sod(d)-sod(new Date()))/864e5):null};
 const F=o=>new Intl.DateTimeFormat("ro-RO",o);
 const fWd=F({weekday:"long"}), fDm=F({day:"numeric",month:"long"}), fTime=F({hour:"2-digit",minute:"2-digit"}), fShort=F({day:"numeric",month:"short"}), fStamp=F({day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}), fMonth=F({month:"long",year:"numeric"});
@@ -290,7 +291,7 @@ function opener(){
 
 function next(){
   const N=$("next"); N.textContent=""; N.className="next";
-  const open=items.filter(i=>!i.done&&i.due&&["deadline","action","meeting"].includes(i.kind)&&left(i.due)>=0)
+  const open=items.filter(i=>!i.done&&i.due&&["deadline","action","meeting"].includes(i.kind)&&upcoming(i))
     .sort((a,b)=>parse(a.due)-parse(b.due));
   const i=open[0];
   if(!i){N.classList.add("calm");N.appendChild(el("div","what","Nimic cu termen în zilele următoare."));N.style.gridTemplateColumns="1fr";return}
@@ -335,7 +336,7 @@ function todo(){
 }
 
 function week(){
-  const rows=items.filter(i=>i.kind==="meeting"&&i.due&&left(i.due)>=0).sort((a,b)=>parse(a.due)-parse(b.due));
+  const rows=items.filter(i=>i.kind==="meeting"&&i.due&&upcoming(i)).sort((a,b)=>parse(a.due)-parse(b.due));
   const W=$("week"); W.textContent="";
   if(!rows.length){W.appendChild(el("p","empty","Niciun curs mutat și nicio întâlnire anunțată."));return}
   const groups=new Map();
@@ -439,7 +440,7 @@ function show(v,anim){
 addEventListener("hashchange",()=>show(location.hash.slice(1),true));
 show(location.hash.slice(1),false);
 function counts(){
-  const n=k=>items.filter(i=>k.includes(i.kind)&&!i.done&&(i.kind!=="meeting"||left(i.due)>=0)).length;
+  const n=k=>items.filter(i=>k.includes(i.kind)&&!i.done&&(i.kind!=="meeting"||upcoming(i))).length;
   $("c-todo").textContent=n(["deadline","action"])||"";
   $("c-week").textContent=n(["meeting"])||"";
   $("c-jobs").textContent=n(["job"])||"";
